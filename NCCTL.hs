@@ -27,7 +27,7 @@ ag,af :: (Eq p) => (Formula p) -> (Formula p)
 ag f = Neg (EF (Neg f))
 af f = Neg (EG (Neg f))
 
-forwards,backwards :: (Ord s, Eq p) => Kripke p s -> SBMT s s
+forwards,backwards :: (Ord s, Eq p) => Kripke p s -> BMT s s
 forwards = fst . tr
 backwards  = snd . tr
 
@@ -35,6 +35,7 @@ check :: (Ord s, Eq p) => (Kripke p s) -> (FODBR s s) -> (Formula p) -> [s]
 check mod sys (Prop p)    = sort $ (valuation mod) p
 check mod sys (Neg f)     = (states mod) `nubminus` (check mod sys f)
 check mod sys (Disj f f') = (check mod sys f) `nubunion` (check mod sys f')
+
 check mod sys (Conj f f') = (check mod sys f) `nubisect` (check mod sys f')
 
 check mod sys (EX f)      =
@@ -43,6 +44,7 @@ check mod sys (EF f)      = fix ff (check mod sys (EX f)) where
     ff ss = ss `nubunion` (find $ backwards mod) ss
 check mod sys (EG f)      = fix ff (check mod sys f) where
     ff ss = ss `nubisect` (find $ backwards mod) ss
+
 check mod sys (EU f f')   = fix ff (check mod sys f') where
     ff ss = ss `nubunion` ((find $ backwards mod) ss `nubisect` (check mod sys f))
 

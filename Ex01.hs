@@ -9,11 +9,11 @@ exampleModel = Kripke [0,1] statespace transition owner val
 
 data Property = N | S | E | W | T deriving Eq
                              
-type Prop  = (Property, Int) -- (Property, Agent) or (Orientation, Agent)
-type State = (Int, Int, Int) -- (Position, Position, Agent)
+type Prop  = (Property, Int)
+type State = (Int, Int, Int)
 
 statespace :: [State]
-statespace = [ (p0, p1, i) | p0 <- [0..9], p1 <- [0..9], p0 /= p1, i <- [0,1]]
+statespace = [ (p0, p1, i) | p0 <- [0..9], p1 <- [0..9], p0 /= p1, i <- [0,1] ]
 
 initState :: State
 initState = (0, 9, 0)
