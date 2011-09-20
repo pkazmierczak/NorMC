@@ -1,23 +1,30 @@
 module Ex02 where
 
 import NCCTL hiding (owner)
-import FODBR (FODBR, build, find1, nubisect, restrict, union)
+--import FODBR (FODBR, build, find1, nubisect, restrict, union)
+import HAMBR
 import Data.List (sort,(\\))
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 type State = (Int, Int, Int, Int, Int, Int, Int)
 
-statespace :: [State]
-statespace = sort  
+statespace :: Set State
+statespace = Set.fromList statespaceList
+
+statespaceList = 
              [(p, s1, s2, c1, c2, c3, a) | 
                    p  <- [0..4], s1 <- [0..4], s2 <- [0..4], 
                    c1 <- [0..4], c2 <- [0..4], c3 <- [0..4], 
                    a  <- [1..4]
              ]
+-- initState :: State -- I'm not sure we actually need initState here at all
+-- initState = (0, 0, 0, 0, 0, 0, 1) -- it's not used anywhere else in the file
 
-transition :: FODBR State State
+transition :: HAMBR State State
 transition = build [((p , s1 , s2 , c1 , c2 , c3 , a),
                      (p', s1', s2', c1', c2', c3', 1 + (a `mod` 4))) | 
-                    (p,s1,s2,c1,c2,c3,a) <- statespace,
+                    (p,s1,s2,c1,c2,c3,a) <- statespaceList,
                     p'  <- if (p  == a || p  == 0) then [0, a] else [p ], 
                     s1' <- if (s1 == a || s1 == 0) then [0, a] else [s1], 
                     s2' <- if (s2 == a || s2 == 0) then [0, a] else [s2], 
@@ -43,8 +50,8 @@ project C3 (_,_,_,_,_,c3,_) = c3
 
 type Proposition = (Resource, Int)
 
-val :: Proposition -> [State]
-val (res, ag) = filter ((ag == ) . (project res)) statespace
+val :: Proposition -> Set State
+val (res, ag) = Set.filter ((ag == ) . (project res)) statespace
 
 needprinter 1 = True
 needprinter 2 = True
@@ -58,18 +65,17 @@ needcomputer 1 = True
 needcomputer 3 = True
 needcomputer _ = False
 
-hasprinter (pr,_,_,_,_,_,_) ag = pr == ag
-hasscanner (_,s1,s2,_,_,_,_) ag = (s1 == ag || s2 == ag)
-hascomputer (_,_,_,c1,c2,c3,_) ag = (c1 == ag || c2 == ag || c3 == ag)
+hasprinter (pr,_,_,_,_,_,_) a = pr == a 
+hasscanner (_,s1,s2,_,_,_,_) a = (s1 == a || s2 == a)
+hascomputer (_,_,_,c1,c2,c3,_) a = (c1 == a || c2 == a || c3 == a)
 
-component1 :: FODBR State State
+component1 :: HAMBR State State
 component1 = restrict transition
           (\(pr,s1,s2,c1,c2,c3,a) (pr', s1', s2', c1', c2', c3', a') -> 
            (a == s1' && a == s2') || (a == c1' && a == c2' ) || 
-                                      (a == c1' && a == c3') || 
-                                      (a == c2' && a == c3'))
+           (a == c1' && a == c3') || (a == c2' && a == c3'))
 
-component2 :: FODBR State State
+component2 :: HAMBR State State
 component2 = restrict transition
           (\(pr,s1,s2,c1,c2,c3,a) (pr', s1', s2', c1', c2', c3', a') ->
            ((not $ needprinter a) && ( pr /= a && pr' == a))   || 
@@ -79,29 +85,28 @@ component2 = restrict transition
                                          (c2 /= a && c2' == a) || 
                                          (c3 /= a && c3' == a) ))))
 
-component3 :: FODBR State State
+component3 :: HAMBR State State
 component3 = restrict transition
           (\(pr,s1,s2,c1,c2,c3,a) (pr', s1', s2', c1', c2', c3', a') ->
-           (foldr (+) 0 $ 
-                  zipWith (\x y -> if (x /= a) && (y == a) then 1 else 0) 
+           (foldr (+) 0 $ zipWith (\x y -> if (x /= a) && (y == a) then 1 else 0) 
                               [pr , s1 , s2 , c1 , c2 , c3 ] 
                               [pr', s1', s2', c1', c2', c3']) > 1)
 
-component4 :: FODBR State State
+component4 :: HAMBR State State
 component4 = restrict transition
           (\s@(pr,s1,s2,c1,c2,c3,a) s' -> 
             (
               (needprinter a && (pr == 0) && (not $ hasprinter s a)) ||
-              (needscanner a && (s1 == 0 || s2 == 0) && (not $ hasprinter s a)) ||
+              (needscanner a && (s1 == 0 || s2 == 0) && (not $ hasscanner s a)) ||
               (needcomputer a && (c1 == 0 || c2 == 0 || c3 == 0) && (not $ hascomputer s a))
             ) && not (
               ((not $ hasprinter s a) && (pr == 0) && (needprinter a) && (hasprinter s' a)) ||
               ((not $ hasscanner s a) && (s1 == 0 || s2 == 0) && (needscanner a) && (hasscanner s' a)) ||
               ((not $ hascomputer s a) && (c1 == 0 || c2 == 0 || c3 == 0) && (needcomputer a) && (hascomputer s' a))
             )
-          )          
+          )
 
-eta_0 :: FODBR State State
+eta_0 :: HAMBR State State
 eta_0 = component1 `union` component2 `union` component3 `union` component4
 
 stHappy :: Int -> State -> Bool
@@ -113,12 +118,11 @@ stHappy 4 (_,  s1, s2, _,  _,  _,  _) = (s1 == 4 || s2 == 4)
 
 ownsSomething :: Int -> (State -> Bool)
 ownsSomething n = (\(pr, s1, s2, c1, c2, c3, a) -> (pr == n || s1 == n || s2 == n || 
-                                                    c1 == n || c2 == n || c3 == n))
+                                                  c1 == n || c2 == n || c3 == n))
 
-eta_1 :: FODBR State State
+eta_1 :: HAMBR State State
 eta_1 = restrict transition
-        (\s s' -> (stHappy (owner (s,s')) s) &&
-                  (ownsSomething (owner (s,s')) s'))
+        (\s s' -> (stHappy (owner (s,s')) s) && (ownsSomething (owner (s,s')) s'))
 
 exampleModel :: Kripke Proposition State
 exampleModel = Kripke [1,2,3,4] statespace transition owner val 
@@ -139,8 +143,20 @@ fHappy 3 = (Conj (fHasScanner 3) (fHasComputer 3))
 fHappy 4 = (fHasScanner 4)
 
 phi_1 :: Formula Proposition
-phi_1 = ag (Conj (af (fHappy 1))
-                      (Conj (af (fHappy 2))
-                            (Conj (af (fHappy 3)) 
-                                  (af (fHappy 4)))))
+phi_1 = 
+  ag (Conj (af (fHappy 1))(Conj(af (fHappy 2))(Conj(af (fHappy 3))(af (fHappy 4)))))
+
+dont_release :: HAMBR State State
+dont_release = restrict transition
+               (\s@(pr,s1,s2,c1,c2,c3,a) (pr',s1',s2',c1',c2',c3',_) ->
+                 (not $ stHappy a s) && 
+                 (((pr == a) && (pr' /= a)) || ((s1 == a) && (s1' /= a)) ||
+                  ((s2 == a) && (s2' /= a)) || ((c1 == a) && (c1' /= a)) ||
+                  ((c2 == a) && (c2' /= a)) || ((c3 == a) && (c3' /= a))))
+
+eta_1' :: HAMBR State State
+eta_1' = eta_1 `union` dont_release
+
+phi_2 :: Formula Proposition
+phi_2 = EG (Neg (fHappy 2))
 

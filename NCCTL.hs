@@ -1,14 +1,18 @@
 module NCCTL where
 
-import FODBR hiding (fix)
-import Data.List (foldl', sort, nub)
+import HAMBR
+import Data.Hashable
+import FODBR (nubunion, nubisect, nubminus)
+import Data.List (foldl', sort, nub, union, intersect, (\\))
+import Data.Set (Set)
+import qualified Data.Set as Set
 
-data (Ord s, Eq p) => Kripke p s = Kripke {
+data (Hashable s, Ord s, Eq p) => Kripke p s = Kripke {
   agents :: [Int], 
-  states :: [s], 
-  tr :: FODBR s s,
+  states :: Set s, 
+  tr :: HAMBR s s,
   owner :: (s, s) -> Int, 
-  valuation :: p -> [s]
+  valuation :: p -> Set s
   } 
 
 data (Eq p) => Formula p = Prop p             | Neg  (Formula p)
@@ -27,40 +31,37 @@ ag,af :: (Eq p) => (Formula p) -> (Formula p)
 ag f = Neg (EF (Neg f))
 af f = Neg (EG (Neg f))
 
-forwards,backwards :: (Ord s, Eq p) => Kripke p s -> SBMT s s
-forwards = fst . tr
-backwards  = snd . tr
+forwards,backwards :: (Hashable s, Ord s, Eq p) => Kripke p s -> (Set s -> Set s)
+forwards  mod = forward  (tr mod)
+backwards mod = backward (tr mod)
 
-check :: (Ord s, Eq p) => (Kripke p s) -> (FODBR s s) -> (Formula p) -> [s]
-check mod sys (Prop p)    = sort $ (valuation mod) p
-check mod sys (Neg f)     = (states mod) `nubminus` (check mod sys f)
-check mod sys (Disj f f') = (check mod sys f) `nubunion` (check mod sys f')
-check mod sys (Conj f f') = (check mod sys f) `nubisect` (check mod sys f')
-
+check :: (Hashable s, Ord s, Eq p) => (Kripke p s) -> (HAMBR s s) -> (Formula p) -> Set s
+check mod sys (Prop p)    = (valuation mod) p
+check mod sys (Neg f)     = (states mod) `Set.difference` (check mod sys f)
+check mod sys (Disj f f') = (check mod sys f) `Set.union` (check mod sys f')
+check mod sys (Conj f f') = (check mod sys f) `Set.intersection` (check mod sys f')
 check mod sys (EX f)      =
-    find (backwards mod) (check mod sys f)
+    (backwards mod) (check mod sys f)
 check mod sys (EF f)      = fix ff (check mod sys (EX f)) where 
-    ff ss = ss `nubunion` (find $ backwards mod) ss
+    ff ss = ss `Set.union` (backwards mod) ss
 check mod sys (EG f)      = fix ff (check mod sys f) where
-    ff ss = ss `nubisect` (find $ backwards mod) ss
+    ff ss = ss `Set.intersection` (backwards mod) ss
 check mod sys (EU f f')   = fix ff (check mod sys f') where
-    ff ss = ss `nubunion` ((find $ backwards mod) ss `nubisect` (check mod sys f))
-
-check mod sys (CD c f) = foldl' nubunion [] $ 
+    ff ss = ss `Set.union` ((backwards mod) ss `Set.intersection` (check mod sys f))
+check mod sys (CD c f) = Set.unions $ 
+                         map (\mod -> (check mod sys f)) $
+                             map (ir mod sys) $ coasGivenCP mod c
+check mod sys (CS c f) = foldl' Set.intersection (states mod) $ 
                          map (\mod -> (check mod sys f)) $
                              map (ir mod sys) $ coasGivenCP mod c
 
-check mod sys (CS c f) = foldl' nubisect (states mod) $ 
-                         map (\mod -> (check mod sys f)) $
-                             map (ir mod sys) $ coasGivenCP mod c
-
-nsimplement :: (Ord s, Eq p) => (Kripke p s) -> (FODBR s s) -> (Kripke p s)
+nsimplement :: (Hashable s, Ord s, Eq p) => (Kripke p s) -> (HAMBR s s) -> (Kripke p s)
 nsimplement mod sys = mod { tr = (tr mod) `minus` sys }
 
-nsrestrict :: (Ord s, Eq p) => (Kripke p s) -> (FODBR s s) -> [Int] -> (FODBR s s)
+nsrestrict :: (Hashable s, Ord s, Eq p) => (Kripke p s) -> (HAMBR s s) -> [Int] -> (HAMBR s s)
 nsrestrict mod sys coa = restrict sys (\s s' -> ((owner mod (s,s')) `elem` coa))
 
-ir :: (Ord s, Eq p) => (Kripke p s) -> (FODBR s s) -> [Int] -> (Kripke p s)
+ir :: (Hashable s, Ord s, Eq p) => (Kripke p s) -> (HAMBR s s) -> [Int] -> (Kripke p s)
 ir mod sys coa = nsimplement mod (nsrestrict mod sys coa)
 
 fix :: (Eq a) => (a -> a) -> a -> a
@@ -75,7 +76,7 @@ checkCoaPred (GEQ n)        coa = n <= length coa
 checkCoaPred (CNeg c)       coa = not (checkCoaPred c coa)
 checkCoaPred (CDisj c c')   coa = (checkCoaPred c coa) || (checkCoaPred c' coa)
 
-coasGivenCP :: (Ord s, Eq p) => (Kripke p s) -> Coalition -> [[Int]]
+coasGivenCP :: (Hashable s, Ord s, Eq p) => (Kripke p s) -> Coalition -> [[Int]]
 coasGivenCP mod cp = filter (checkCoaPred cp) (spowerlist $ agents mod)
 
 spowerlist :: (Ord a) => [a] -> [[a]]
