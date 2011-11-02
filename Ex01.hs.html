@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.39 in inline-css mode. -->
+<html>
+  <head>
+    <title>Ex01.hs</title>
+  </head>
+  <body style="color: #000000; background-color: #EAF0F0;">
+    <pre>
+<span style="color: #551a8b;">module</span> <span style="color: #458b74;">Ex01</span> <span style="color: #551a8b;">where</span>
+
+<span style="color: #551a8b;">import</span> <span style="color: #458b74;">NCCTL</span> <span style="color: #551a8b;">hiding</span> (owner)
+<span style="color: #551a8b;">import</span> <span style="color: #458b74;">FODBR</span> (<span style="color: #458b74;">FODBR</span>, build, find1, nubisect)
+<span style="color: #551a8b;">import</span> <span style="color: #458b74;">Data.List</span> (sort, (<span style="color: #ff6347;">\</span>\))
+
+<span style="color: #00008b;">exampleModel</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Kripke</span> <span style="color: #458b74;">Prop</span> <span style="color: #458b74;">State</span>
+<span style="color: #00008b;">exampleModel</span> <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Kripke</span> [0,1] statespace transition owner val
+
+<span style="color: #551a8b;">data</span> <span style="color: #458b74;">Property</span> <span style="color: #ff6347;">=</span> <span style="color: #458b74;">N</span> <span style="color: #ff6347;">|</span> <span style="color: #458b74;">S</span> <span style="color: #ff6347;">|</span> <span style="color: #458b74;">E</span> <span style="color: #ff6347;">|</span> <span style="color: #458b74;">W</span> <span style="color: #ff6347;">|</span> <span style="color: #458b74;">T</span> <span style="color: #551a8b;">deriving</span> <span style="color: #458b74;">Eq</span>
+                             
+<span style="color: #551a8b;">type</span> <span style="color: #458b74;">Prop</span>  <span style="color: #ff6347;">=</span> (<span style="color: #458b74;">Property</span>, <span style="color: #458b74;">Int</span>)
+<span style="color: #551a8b;">type</span> <span style="color: #458b74;">State</span> <span style="color: #ff6347;">=</span> (<span style="color: #458b74;">Int</span>, <span style="color: #458b74;">Int</span>, <span style="color: #458b74;">Int</span>)
+
+<span style="color: #00008b;">statespace</span> <span style="color: #ff6347;">::</span> [<span style="color: #458b74;">State</span>]
+<span style="color: #00008b;">statespace</span> <span style="color: #ff6347;">=</span> [ (p0, p1, i) <span style="color: #ff6347;">|</span> p0 <span style="color: #ff6347;">&lt;-</span> [0<span style="color: #ff6347;">..</span>9], p1 <span style="color: #ff6347;">&lt;-</span> [0<span style="color: #ff6347;">..</span>9], p0 <span style="color: #ff6347;">/=</span> p1, i <span style="color: #ff6347;">&lt;-</span> [0,1] ]
+
+<span style="color: #00008b;">initState</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">State</span>
+<span style="color: #00008b;">initState</span> <span style="color: #ff6347;">=</span> (0, 9, 0)
+
+<span style="color: #00008b;">project</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Int</span> <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">State</span> <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Int</span>
+<span style="color: #00008b;">project</span> 0 (p0, <span style="color: #551a8b;">_</span>, <span style="color: #551a8b;">_</span>) <span style="color: #ff6347;">=</span> p0
+<span style="color: #00008b;">project</span> 1 (<span style="color: #551a8b;">_</span>, p1, <span style="color: #551a8b;">_</span>) <span style="color: #ff6347;">=</span> p1
+
+<span style="color: #00008b;">val</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Prop</span> <span style="color: #ff6347;">-&gt;</span> [<span style="color: #458b74;">State</span>]
+<span style="color: #00008b;">val</span> (<span style="color: #458b74;">N</span>, ag) <span style="color: #ff6347;">=</span> filter (even <span style="color: #ff6347;">.</span> (project ag)) statespace 
+<span style="color: #00008b;">val</span> (<span style="color: #458b74;">S</span>, ag) <span style="color: #ff6347;">=</span> filter (odd <span style="color: #ff6347;">.</span> (project ag)) statespace 
+<span style="color: #00008b;">val</span> (<span style="color: #458b74;">W</span>, ag) <span style="color: #ff6347;">=</span> filter ((<span style="color: #ff6347;">`elem`</span> [0,1]) <span style="color: #ff6347;">.</span> (project ag)) statespace 
+<span style="color: #00008b;">val</span> (<span style="color: #458b74;">E</span>, ag) <span style="color: #ff6347;">=</span> filter ((<span style="color: #ff6347;">`elem`</span> [8,9]) <span style="color: #ff6347;">.</span> (project ag)) statespace 
+<span style="color: #00008b;">val</span> (<span style="color: #458b74;">T</span>, ag) <span style="color: #ff6347;">=</span> filter (<span style="color: #ff6347;">\</span>(<span style="color: #551a8b;">_</span>,<span style="color: #551a8b;">_</span>,i) <span style="color: #ff6347;">-&gt;</span> i <span style="color: #ff6347;">==</span> ag) statespace 
+
+<span style="color: #00008b;">transition</span> <span style="color: #ff6347;">=</span> build [((p0,p1,i), (p0',p1',1<span style="color: #ff6347;">-</span>i)) <span style="color: #ff6347;">|</span> 
+                    (p0,p1,i) <span style="color: #ff6347;">&lt;-</span> statespace, 
+                    p0'       <span style="color: #ff6347;">&lt;-</span> possibleSteps (i <span style="color: #ff6347;">==</span> 0) p0,
+                    p1'       <span style="color: #ff6347;">&lt;-</span> possibleSteps (i <span style="color: #ff6347;">==</span> 1) p1, 
+                    (p0',p1',1<span style="color: #ff6347;">-</span>i) <span style="color: #ff6347;">`elem`</span> statespace
+                   ]
+
+<span style="color: #00008b;">possibleSteps</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Bool</span> <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Int</span> <span style="color: #ff6347;">-&gt;</span> [<span style="color: #458b74;">Int</span>]
+<span style="color: #00008b;">possibleSteps</span> <span style="color: #458b74;">False</span> p <span style="color: #ff6347;">=</span> [p]
+<span style="color: #00008b;">possibleSteps</span> <span style="color: #458b74;">True</span> p <span style="color: #ff6347;">=</span> [p<span style="color: #ff6347;">-</span>2, p, p<span style="color: #ff6347;">+</span>2]<span style="color: #ff6347;">++</span>(<span style="color: #551a8b;">if</span> even p <span style="color: #551a8b;">then</span> [p<span style="color: #ff6347;">+</span>1] <span style="color: #551a8b;">else</span> [p<span style="color: #ff6347;">-</span>1])
+
+<span style="color: #00008b;">illegal</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">FODBR</span> <span style="color: #458b74;">State</span> <span style="color: #458b74;">State</span>
+<span style="color: #00008b;">illegal</span> <span style="color: #ff6347;">=</span> build [ ((p0,p1,i),(p0',p1',1<span style="color: #ff6347;">-</span>i)) <span style="color: #ff6347;">|</span> 
+                  (p0,p1,i)   <span style="color: #ff6347;">&lt;-</span> statespace, 
+                  (p0',p1',<span style="color: #551a8b;">_</span>) <span style="color: #ff6347;">&lt;-</span> (find1 (fst transition) (p0,p1,i)), 
+                  p1' <span style="color: #ff6347;">==</span> p0' <span style="color: #ff6347;">+</span> 2 <span style="color: #ff6347;">||</span> <span style="color: #551a8b;">if</span> i <span style="color: #ff6347;">==</span> 0 <span style="color: #551a8b;">then</span> (p0' <span style="color: #ff6347;">&lt;</span> 8 <span style="color: #ff6347;">&amp;&amp;</span> p0 <span style="color: #ff6347;">&gt;=</span> p0') 
+                                              <span style="color: #551a8b;">else</span> (p1' <span style="color: #ff6347;">&gt;</span> 1 <span style="color: #ff6347;">&amp;&amp;</span>  p1 <span style="color: #ff6347;">&lt;=</span> p1')
+                ]
+
+<span style="color: #00008b;">owner</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">State</span>,<span style="color: #458b74;">State</span>) <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Int</span>
+<span style="color: #00008b;">owner</span> ((<span style="color: #551a8b;">_</span>,<span style="color: #551a8b;">_</span>,i),<span style="color: #551a8b;">_</span>) <span style="color: #ff6347;">=</span> i
+
+<span style="color: #00008b;">initF</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Formula</span> <span style="color: #458b74;">Prop</span> 
+<span style="color: #00008b;">initF</span> <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Conj</span> (<span style="color: #458b74;">Conj</span> (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">T</span>, 0)) (<span style="color: #458b74;">Conj</span> (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">N</span>, 0)) (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">W</span>, 0)))) 
+             (<span style="color: #458b74;">Conj</span> (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">S</span>, 1)) (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">E</span>, 1)))
+
+<span style="color: #00008b;">goalF</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Formula</span> <span style="color: #458b74;">Prop</span>
+<span style="color: #00008b;">goalF</span> <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Conj</span> (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">E</span>, 0)) (<span style="color: #458b74;">Prop</span> (<span style="color: #458b74;">W</span>, 1))
+
+</pre>
+  </body>
+</html>

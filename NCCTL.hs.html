@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- Created by htmlize-1.39 in inline-css mode. -->
+<html>
+  <head>
+    <title>NCCTL.hs</title>
+  </head>
+  <body style="color: #000000; background-color: #EAF0F0;">
+    <pre>
+<span style="color: #551a8b;">module</span> <span style="color: #458b74;">NCCTL</span> <span style="color: #551a8b;">where</span>
+
+<span style="color: #551a8b;">import</span> <span style="color: #458b74;">FODBR</span> <span style="color: #551a8b;">hiding</span> (fix)
+<span style="color: #551a8b;">import</span> <span style="color: #458b74;">Data.List</span> (foldl', sort, nub)
+
+<span style="color: #551a8b;">data</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> <span style="color: #458b74;">Kripke</span> p s <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Kripke</span> {
+  agents <span style="color: #ff6347;">::</span> [<span style="color: #458b74;">Int</span>], 
+  states <span style="color: #ff6347;">::</span> [s], 
+  tr <span style="color: #ff6347;">::</span> <span style="color: #458b74;">FODBR</span> s s,
+  owner <span style="color: #ff6347;">::</span> (s, s) <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Int</span>, 
+  valuation <span style="color: #ff6347;">::</span> p <span style="color: #ff6347;">-&gt;</span> [s]
+  } 
+
+<span style="color: #551a8b;">data</span> (<span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> <span style="color: #458b74;">Formula</span> p <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Prop</span> p             <span style="color: #ff6347;">|</span> <span style="color: #458b74;">Neg</span>  (<span style="color: #458b74;">Formula</span> p)
+             <span style="color: #ff6347;">|</span> <span style="color: #458b74;">Disj</span> (<span style="color: #458b74;">Formula</span> p) (<span style="color: #458b74;">Formula</span> p)   <span style="color: #ff6347;">|</span> <span style="color: #458b74;">Conj</span> (<span style="color: #458b74;">Formula</span> p) (<span style="color: #458b74;">Formula</span> p)
+             <span style="color: #ff6347;">|</span> <span style="color: #458b74;">EX</span>   (<span style="color: #458b74;">Formula</span> p)               <span style="color: #ff6347;">|</span> <span style="color: #458b74;">EF</span>   (<span style="color: #458b74;">Formula</span> p)
+             <span style="color: #ff6347;">|</span> <span style="color: #458b74;">EG</span>   (<span style="color: #458b74;">Formula</span> p)               <span style="color: #ff6347;">|</span> <span style="color: #458b74;">EU</span>   (<span style="color: #458b74;">Formula</span> p) (<span style="color: #458b74;">Formula</span> p)
+             <span style="color: #ff6347;">|</span> <span style="color: #458b74;">CD</span>   <span style="color: #458b74;">Coalition</span>   (<span style="color: #458b74;">Formula</span> p)   <span style="color: #ff6347;">|</span> <span style="color: #458b74;">CS</span>   <span style="color: #458b74;">Coalition</span>   (<span style="color: #458b74;">Formula</span> p)
+               <span style="color: #551a8b;">deriving</span> (<span style="color: #458b74;">Show</span>)
+               
+<span style="color: #551a8b;">data</span> <span style="color: #458b74;">Coalition</span> <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Subseteq</span> [<span style="color: #458b74;">Int</span>]               <span style="color: #ff6347;">|</span> <span style="color: #458b74;">Supseteq</span> [<span style="color: #458b74;">Int</span>]
+               <span style="color: #ff6347;">|</span> <span style="color: #458b74;">Eq</span> [<span style="color: #458b74;">Int</span>]                     <span style="color: #ff6347;">|</span> <span style="color: #458b74;">GEQ</span> <span style="color: #458b74;">Int</span>
+               <span style="color: #ff6347;">|</span> <span style="color: #458b74;">CNeg</span> <span style="color: #458b74;">Coalition</span>               <span style="color: #ff6347;">|</span> <span style="color: #458b74;">CDisj</span> <span style="color: #458b74;">Coalition</span> <span style="color: #458b74;">Coalition</span>
+                 <span style="color: #551a8b;">deriving</span> (<span style="color: #458b74;">Show</span>)
+
+ag,af <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> (<span style="color: #458b74;">Formula</span> p) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">Formula</span> p)
+<span style="color: #00008b;">ag</span> f <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Neg</span> (<span style="color: #458b74;">EF</span> (<span style="color: #458b74;">Neg</span> f))
+<span style="color: #00008b;">af</span> f <span style="color: #ff6347;">=</span> <span style="color: #458b74;">Neg</span> (<span style="color: #458b74;">EG</span> (<span style="color: #458b74;">Neg</span> f))
+
+forwards,backwards <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> <span style="color: #458b74;">Kripke</span> p s <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">BMT</span> s s
+<span style="color: #00008b;">forwards</span> <span style="color: #ff6347;">=</span> fst <span style="color: #ff6347;">.</span> tr
+<span style="color: #00008b;">backwards</span>  <span style="color: #ff6347;">=</span> snd <span style="color: #ff6347;">.</span> tr
+
+<span style="color: #00008b;">check</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> (<span style="color: #458b74;">Kripke</span> p s) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">FODBR</span> s s) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">Formula</span> p) <span style="color: #ff6347;">-&gt;</span> [s]
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">Prop</span> p)    <span style="color: #ff6347;">=</span> sort <span style="color: #ff6347;">$</span> (valuation mod) p
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">Neg</span> f)     <span style="color: #ff6347;">=</span> (states mod) <span style="color: #ff6347;">`nubminus`</span> (check mod sys f)
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">Disj</span> f f') <span style="color: #ff6347;">=</span> (check mod sys f) <span style="color: #ff6347;">`nubunion`</span> (check mod sys f')
+
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">Conj</span> f f') <span style="color: #ff6347;">=</span> (check mod sys f) <span style="color: #ff6347;">`nubisect`</span> (check mod sys f')
+
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">EX</span> f)      <span style="color: #ff6347;">=</span>
+    find (backwards mod) (check mod sys f)
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">EF</span> f)      <span style="color: #ff6347;">=</span> fix ff (check mod sys (<span style="color: #458b74;">EX</span> f)) <span style="color: #551a8b;">where</span> 
+    ff ss <span style="color: #ff6347;">=</span> ss <span style="color: #ff6347;">`nubunion`</span> (find <span style="color: #ff6347;">$</span> backwards mod) ss
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">EG</span> f)      <span style="color: #ff6347;">=</span> fix ff (check mod sys f) <span style="color: #551a8b;">where</span>
+    ff ss <span style="color: #ff6347;">=</span> ss <span style="color: #ff6347;">`nubisect`</span> (find <span style="color: #ff6347;">$</span> backwards mod) ss
+
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">EU</span> f f')   <span style="color: #ff6347;">=</span> fix ff (check mod sys f') <span style="color: #551a8b;">where</span>
+    ff ss <span style="color: #ff6347;">=</span> ss <span style="color: #ff6347;">`nubunion`</span> ((find <span style="color: #ff6347;">$</span> backwards mod) ss <span style="color: #ff6347;">`nubisect`</span> (check mod sys f))
+
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">CD</span> c f) <span style="color: #ff6347;">=</span> foldl' nubunion <span style="color: #458b74;">[]</span> <span style="color: #ff6347;">$</span> 
+                         map (<span style="color: #ff6347;">\</span>mod <span style="color: #ff6347;">-&gt;</span> (check mod sys f)) <span style="color: #ff6347;">$</span>
+                             map (ir mod sys) <span style="color: #ff6347;">$</span> coasGivenCP mod c
+
+<span style="color: #00008b;">check</span> mod sys (<span style="color: #458b74;">CS</span> c f) <span style="color: #ff6347;">=</span> foldl' nubisect (states mod) <span style="color: #ff6347;">$</span> 
+                         map (<span style="color: #ff6347;">\</span>mod <span style="color: #ff6347;">-&gt;</span> (check mod sys f)) <span style="color: #ff6347;">$</span>
+                             map (ir mod sys) <span style="color: #ff6347;">$</span> coasGivenCP mod c
+
+<span style="color: #00008b;">nsimplement</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> (<span style="color: #458b74;">Kripke</span> p s) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">FODBR</span> s s) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">Kripke</span> p s)
+<span style="color: #00008b;">nsimplement</span> mod sys <span style="color: #ff6347;">=</span> mod { tr <span style="color: #ff6347;">=</span> (tr mod) <span style="color: #ff6347;">`minus`</span> sys }
+
+<span style="color: #00008b;">nsrestrict</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> (<span style="color: #458b74;">Kripke</span> p s) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">FODBR</span> s s) <span style="color: #ff6347;">-&gt;</span> [<span style="color: #458b74;">Int</span>] <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">FODBR</span> s s)
+<span style="color: #00008b;">nsrestrict</span> mod sys coa <span style="color: #ff6347;">=</span> restrict sys (<span style="color: #ff6347;">\</span>s s' <span style="color: #ff6347;">-&gt;</span> ((owner mod (s,s')) <span style="color: #ff6347;">`elem`</span> coa))
+
+<span style="color: #00008b;">ir</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> (<span style="color: #458b74;">Kripke</span> p s) <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">FODBR</span> s s) <span style="color: #ff6347;">-&gt;</span> [<span style="color: #458b74;">Int</span>] <span style="color: #ff6347;">-&gt;</span> (<span style="color: #458b74;">Kripke</span> p s)
+<span style="color: #00008b;">ir</span> mod sys coa <span style="color: #ff6347;">=</span> nsimplement mod (nsrestrict mod sys coa)
+
+<span style="color: #00008b;">fix</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Eq</span> a) <span style="color: #ff6347;">=&gt;</span> (a <span style="color: #ff6347;">-&gt;</span> a) <span style="color: #ff6347;">-&gt;</span> a <span style="color: #ff6347;">-&gt;</span> a
+<span style="color: #00008b;">fix</span> f x <span style="color: #ff6347;">=</span> <span style="color: #551a8b;">if</span> (fx <span style="color: #ff6347;">==</span> x) <span style="color: #551a8b;">then</span> x <span style="color: #551a8b;">else</span> fix f fx <span style="color: #551a8b;">where</span>
+    fx <span style="color: #ff6347;">=</span> f x
+
+<span style="color: #00008b;">checkCoaPred</span> <span style="color: #ff6347;">::</span> <span style="color: #458b74;">Coalition</span> <span style="color: #ff6347;">-&gt;</span> [<span style="color: #458b74;">Int</span>] <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Bool</span>
+<span style="color: #00008b;">checkCoaPred</span> (<span style="color: #458b74;">Subseteq</span> set) coa <span style="color: #ff6347;">=</span> coa <span style="color: #ff6347;">`subset`</span> set
+<span style="color: #00008b;">checkCoaPred</span> (<span style="color: #458b74;">Supseteq</span> set) coa <span style="color: #ff6347;">=</span> set <span style="color: #ff6347;">`subset`</span> coa
+<span style="color: #00008b;">checkCoaPred</span> (<span style="color: #458b74;">Eq</span> set)       coa <span style="color: #ff6347;">=</span> set <span style="color: #ff6347;">==</span> coa
+<span style="color: #00008b;">checkCoaPred</span> (<span style="color: #458b74;">GEQ</span> n)        coa <span style="color: #ff6347;">=</span> n <span style="color: #ff6347;">&lt;=</span> length coa
+<span style="color: #00008b;">checkCoaPred</span> (<span style="color: #458b74;">CNeg</span> c)       coa <span style="color: #ff6347;">=</span> not (checkCoaPred c coa)
+<span style="color: #00008b;">checkCoaPred</span> (<span style="color: #458b74;">CDisj</span> c c')   coa <span style="color: #ff6347;">=</span> (checkCoaPred c coa) <span style="color: #ff6347;">||</span> (checkCoaPred c' coa)
+
+<span style="color: #00008b;">coasGivenCP</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> s, <span style="color: #458b74;">Eq</span> p) <span style="color: #ff6347;">=&gt;</span> (<span style="color: #458b74;">Kripke</span> p s) <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Coalition</span> <span style="color: #ff6347;">-&gt;</span> [[<span style="color: #458b74;">Int</span>]]
+<span style="color: #00008b;">coasGivenCP</span> mod cp <span style="color: #ff6347;">=</span> filter (checkCoaPred cp) (spowerlist <span style="color: #ff6347;">$</span> agents mod)
+
+<span style="color: #00008b;">spowerlist</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> a) <span style="color: #ff6347;">=&gt;</span> [a] <span style="color: #ff6347;">-&gt;</span> [[a]]
+<span style="color: #00008b;">spowerlist</span> list <span style="color: #ff6347;">=</span> sort <span style="color: #ff6347;">$</span> map sort <span style="color: #ff6347;">$</span> powerlist' list <span style="color: #551a8b;">where</span>
+    powerlist' <span style="color: #458b74;">[]</span> <span style="color: #ff6347;">=</span> [<span style="color: #458b74;">[]</span>]
+    powerlist' (x<span style="color: #458b74;">:</span>l) <span style="color: #ff6347;">=</span> (powerlist' l)<span style="color: #ff6347;">++</span>(map (x<span style="color: #458b74;">:</span>) (powerlist' l))
+
+<span style="color: #00008b;">subset</span> <span style="color: #ff6347;">::</span> (<span style="color: #458b74;">Ord</span> a) <span style="color: #ff6347;">=&gt;</span> [a] <span style="color: #ff6347;">-&gt;</span> [a] <span style="color: #ff6347;">-&gt;</span> <span style="color: #458b74;">Bool</span>
+<span style="color: #00008b;">subset</span> <span style="color: #458b74;">[]</span> <span style="color: #551a8b;">_</span> <span style="color: #ff6347;">=</span> <span style="color: #458b74;">True</span>
+<span style="color: #00008b;">subset</span> (a<span style="color: #458b74;">:</span>r) list <span style="color: #ff6347;">=</span> (a <span style="color: #ff6347;">`elem`</span> list) <span style="color: #ff6347;">&amp;&amp;</span> (subset r list)
+
+</pre>
+  </body>
+</html>
