@@ -96,7 +96,6 @@ find1 (Branch (k,vs) lst rst) x | x == k = vs
 
 find :: (Ord a, Ord b) => (BMT a b) -> [a] -> [b]
 find tree xs = snub $ sort $ concat $ map (find1 tree) xs
-    -- foldl' nubunion [] $ map (find1 tree) xs
 
 fall :: (Ord a, Ord b) => (BMT a b) -> [a] -> [b]
 fall _ [] = []
@@ -120,15 +119,7 @@ trestrict (Branch (k, vs) l r) f = Branch (k, (filter (f k) vs)) (trestrict l f)
 
 
 nubunion :: (Ord a) => [a] -> [a] -> [a]
-nubunion xs ys = snub $ sort $ xs ++ ys  -- this is faster for some reason... ?
-{-
-nubunion [] [] = []
-nubunion [] x  = x
-nubunion x  [] = x
-nubunion (x:r) (x':r') | x == x' = x:(nubunion r r')
-                       | x <  x' = x:(nubunion r (x':r'))
-                       | x  > x' = x':(nubunion (x:r) r')
--}
+nubunion xs ys = snub $ sort $ xs ++ ys
 
 nubisect :: (Ord a) => [a] -> [a] -> [a]
 nubisect [] _ = []
