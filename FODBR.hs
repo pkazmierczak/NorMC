@@ -38,18 +38,6 @@ restrict (l, r) f = (l',r') where
     l' = trestrict l f
     r' = trestrict r (flip f)
 
-lid :: (Ord a, Ord b) => (FODBR a b) -> (FODBR a a)
-lid (r,_) = build $ map (\x -> (x,x)) (keys r)
-
-rid :: (Ord a, Ord b) => (FODBR a b) -> (FODBR b b)
-rid (_,r) = build $ map (\x -> (x,x)) (keys r)
-
-refl :: (Ord a) => (FODBR a a) -> (FODBR a a)
-refl r = (lid r) `union` r `union` (rid r)
-
-irrefl :: (Ord a) => (FODBR a a) -> (FODBR a a)
-irrefl r = (r `minus`(lid r)) `minus`(rid r)
-
 
 trans :: (Ord a) => (FODBR a a) -> (FODBR a a)
 trans (l,r) = buildC $ map (\x -> (x, allsucc l x)) (keys l)
@@ -65,8 +53,8 @@ swap :: (a, b) -> (b, a)
 swap (x, y) = (y, x)
 
 data (Ord a, Ord b) => BMT a b = Empty
-                                | Branch !(a,[b]) !(BMT a b) !(BMT a b)
-                                  deriving (Eq)
+                               | Branch !(a,[b]) !(BMT a b) !(BMT a b)
+                                 deriving (Eq)
 
 construct :: (Ord a, Ord b) => [(a,[b])] -> BMT a b
 construct []  = Empty
