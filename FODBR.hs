@@ -2,7 +2,6 @@ module FODBR where
 
 import Data.List (foldl',sort,(\\))
 
-
 type FODBR a b = (BMT a b, BMT b a)
 
 build :: (Ord a, Ord b) => [(a,b)] -> FODBR a b
