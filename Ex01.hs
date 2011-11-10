@@ -7,8 +7,8 @@ import Data.List (sort, (\\))
 exampleModel :: Kripke Prop State
 exampleModel = Kripke [0,1] statespace transition owner val
 
-data Property = N | S | E | W | T deriving Eq
-                             
+data Property = N | S | E | W | T deriving (Show,Eq)
+                            
 type Prop  = (Property, Int)
 type State = (Int, Int, Int)
 
