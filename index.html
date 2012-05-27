@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>NorMC by pkazmierczak</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>NorMC</h1>
+        <p>A Norm Compliance Temporal Logic Model Checker</p>
+        <p class="view"><a href="https://github.com/pkazmierczak/NorMC">View the Project on GitHub <small>pkazmierczak/NorMC</small></a></p>
+        <ul>
+          <li><a href="https://github.com/pkazmierczak/NorMC/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/pkazmierczak/NorMC/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/pkazmierczak/NorMC">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>This is a public git repository for the NorMC -- a Norm Compliance Temporal Logic Model Checker. The paper that fully documents the model checker is included in the download tarball (or the git repository if you wish to clone/fork it).</p>
+
+<h1>Installation and Usage</h1>
+
+<p>NorMC is written in <a href="http://en.wikipedia.org/wiki/Haskell_(programming_language">Haskell</a>), and it needs a <a href="http://www.haskell.org/ghc/">Glasgow Haskell Compiler</a> interpreter to run. You can download GHC from its homepage, but a simpler and better way is to download the whole <a href="http://hackage.haskell.org/platform/">Haskell Platform</a>. Both Haskell and GHC are free to use and available for Windows, Mac, Linux, and other platforms.</p>
+
+<p>In order to run NorMC, you have to load its files into the GHC interpreter:</p>
+
+<p><code>$ ghci NCCTL.hs</code></p>
+
+<p>You can also load the examples mentioned in the paper, either from the shell (as above) or from within the GHCi command line:</p>
+
+<p><code>Prelude&gt; :l Ex02.hs</code></p>
+
+<p>Current version of NorMC cannot be compiled as a standalone Haskell program, and it always needs GHC to run. Also, NorMC is not compatible with Hugs, and has not been tested with any other Haskell interpreters.</p>
+
+<p>More detailed documentation can be found in the <a href="https://raw.github.com/pkazmierczak/NorMC/master/manual-simple-example.pdf">manual</a>.</p>
+
+<h1>License</h1>
+
+<p>Copyright 2011, University of Bergen. All rights reserved.</p>
+
+<p>Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:</p>
+
+<ol>
+<li><p>Redistributions of source code must retain the above copyright notice, this list of
+  conditions and the following disclaimer.</p></li>
+<li><p>Redistributions in binary form must reproduce the above copyright notice, this list
+  of conditions and the following disclaimer in the documentation and/or other materials
+  provided with the distribution.</p></li>
+</ol><p>THIS SOFTWARE IS PROVIDED BY UNIVERSITY OF BERGEN ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRULS PEDERSEN OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
+<p>The views and conclusions contained in the software and documentation are those of the
+authors and should not be interpreted as representing official policies, either expressed
+or implied, of University of Bergen.</p>
+
+<h1>Authors</h1>
+
+<p>Truls Pedersen (<a href="mailto:truls.pedersen@uib.no">truls.pedersen@uib.no</a>)<br>
+Piotr Kaźmierczak (<a href="mailto:piotr.kazmierczak@uib.no">piotr.kazmierczak@uib.no</a>)<br>
+Thomas Ågotnes (<a href="mailto:thomas.agotnes@uib.no">thomas.agotnes@uib.no</a>)</p>
+
+<h1>Contact</h1>
+
+<p>Piotr Kaźmierczak (<a href="mailto:piotr.kazmierczak@uib.no">piotr.kazmierczak@uib.no</a>)</p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/pkazmierczak">pkazmierczak</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
