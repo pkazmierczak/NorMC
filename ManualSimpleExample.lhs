@@ -190,7 +190,7 @@ pavement, or in the north/south ``lane''. The type of the states,
 of both the agents. We can represent this by three integers.
 
 \begin{code}
-data Property = N | S | E | W | T deriving Eq
+data Property = N | S | E | W | T deriving (Eq, Show)
 
 type Prop  = (Property, Int)
 type State = (Int, Int, Int)
