@@ -1,3 +1,5 @@
+{-# LANGUAGE DatatypeContexts #-}
+
 module NCCTL where
 
 import FODBR hiding (fix)

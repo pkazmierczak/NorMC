@@ -1,3 +1,5 @@
+{-# LANGUAGE DatatypeContexts #-}
+
 module FODBR where
 
 import Data.List (foldl',sort,(\\))

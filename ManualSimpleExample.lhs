@@ -113,7 +113,9 @@ checker files along with a standard Haskell library for handling
 lists.
 
 \begin{code}
-module Ex01 where
+{-# LANGUAGE DatatypeContexts #-}
+
+module ManualSimpleExample where
 
 import NCCTL hiding (owner)
 import FODBR (FODBR, build, find1, nubisect)
@@ -140,20 +142,24 @@ Kripke models are represented by the \cc{Kripke} data structure.  To
 represent sets, such as the set of states in the \cc{Kripke}
 structure, sorted lists with no duplicate occurrences are used.  In
 \mcname\ \cc{Kripke} is defined as follows:
-\begin{code}
+\begin{small}
+\begin{verbatim}
 data (Ord s, Eq p) => Kripke p s = Kripke {
   agents :: [Int],       states :: [s],
   tr :: FODBR s s,       owner :: (s, s) -> Int,
   valuation :: p -> [s]  }
-\end{code}
+\end{verbatim}
+\end{small}
 
 Also, we provide an abbreviation for the 'backward' and 'forward' state:
 
-\begin{code}
+\begin{small}
+\begin{verbatim}
 forwards,backwards :: (Ord s, Eq p) => Kripke p s -> SBMT s s
 forwards = fst . tr
 backwards  = snd . tr
-\end{code}
+\end{verbatim}
+\end{small}
 
 As an example, we describe a simple model of a pavement,
 divided into 10 \textit{positions}, with two agents on opposite
