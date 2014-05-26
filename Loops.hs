@@ -18,8 +18,8 @@ loop :: (Eq a) => [a] -> Bool
 loop (h:t) = h `elem` t
 loop _ = False
 
-eta01NotEnough = map reverse $ 
-                 filter loop (revpaths (transition `minus` 
+eta01NotEnough = map reverse $
+                 filter loop (revpaths (transition `minus`
                                         (eta_0 `union` eta_1)) [[(0,0,0,0,0,0,1)]])
-                 
+
 counterExample = head eta01NotEnough

@@ -48,11 +48,11 @@ fix :: (Eq a) => (a -> a) -> a -> a
 fix f x
   | f x == x = x
   | otherwise = fix f (f x)
-   
+
 swap :: (a, b) -> (b, a)
 swap (x, y) = (y, x)
 
-data BMT a b = 
+data BMT a b =
   Empty
   | Branch !(a,[b]) !(BMT a b) !(BMT a b)
     deriving (Eq)
@@ -79,7 +79,7 @@ tolist tree = concatMap (\x -> (map (\y -> (x,y)) (find1 tree x))) $ keys tree
 
 find1 :: (Ord a, Ord b) => BMT a b -> a -> [b]
 find1 Empty _ = []
-find1 (Branch (k,vs) lst rst) x 
+find1 (Branch (k,vs) lst rst) x
   | x == k = vs
   | x <  k = find1 lst x
   | x  > k = find1 rst x

@@ -26,7 +26,7 @@ data Coalition =
      deriving (Show)
 
 fix :: (Eq a) => (a -> a) -> a -> a
-fix f x 
+fix f x
   | f x == x  = x
   | otherwise = fix f (f x)
 
@@ -91,4 +91,3 @@ spowerlist list = sort . map sort . powerlist' $ list
 subset :: (Ord a) => [a] -> [a] -> Bool
 subset [] _ = True
 subset (a:r) list = (a `elem` list) && subset r list
-
