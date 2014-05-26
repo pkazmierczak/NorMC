@@ -221,10 +221,10 @@ project 0 (p0, _, _) = p0
 project 1 (_, p1, _) = p1
 
 val :: Prop -> [State]
-val (N, ag) = filter (even . (project ag)) statespace
-val (S, ag) = filter (odd . (project ag)) statespace
-val (W, ag) = filter ((`elem` [0,1]) . (project ag)) statespace
-val (E, ag) = filter ((`elem` [8,9]) . (project ag)) statespace
+val (N, ag) = filter (even . project ag) statespace
+val (S, ag) = filter (odd . project ag) statespace
+val (W, ag) = filter ((`elem` [0,1]) . project ag) statespace
+val (E, ag) = filter ((`elem` [8,9]) . project ag) statespace
 val (T, ag) = filter (\(_,_,i) -> i == ag) statespace
 \end{code}
 
@@ -261,9 +261,9 @@ satisfaction of the goal, he must do so.
 illegal :: FODBR State State
 illegal = build [ ((p0,p1,i),(p0',p1',1-i)) |
                   (p0,p1,i)   <- statespace,
-                  (p0',p1',_) <- (find1 (fst transition) (p0,p1,i)),
-                  p1' == p0' + 2 || if i == 0 then (p0' < 8 && p0 >= p0')
-                                              else (p1' > 1 &&  p1 <= p1')]
+                  (p0',p1',_) <- find1 (fst transition) (p0,p1,i),
+                  p1' == p0' + 2 || if i == 0 then p0' < 8 && p0 >= p0'
+                                              else p1' > 1 &&  p1 <= p1']
 
 owner :: (State,State) -> Int
 owner ((_,_,i),_) = i

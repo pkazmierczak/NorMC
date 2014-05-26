@@ -11,7 +11,7 @@ import Ex02
 revpaths :: (Ord a) => FODBR a a -> [[a]] -> [[a]]
 revpaths rel hists = hists ++ revpaths rel hists'
   where
-    hists' = concat $ map (\hist -> map (:hist) (find1 (fst rel)
+    hists' = concatMap (\hist -> map (:hist) (find1 (fst rel)
                                                  (head hist))) hists
 
 loop :: (Eq a) => [a] -> Bool
