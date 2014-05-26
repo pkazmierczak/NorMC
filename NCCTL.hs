@@ -1,11 +1,9 @@
-{-# LANGUAGE DatatypeContexts #-}
-
 module NCCTL where
 
 import FODBR hiding (fix)
 import Data.List (foldl', sort, nub)
 
-data (Ord s, Eq p) => Kripke p s = Kripke {
+data Kripke p s = Kripke {
   agents :: [Int], 
   states :: [s], 
   tr :: FODBR s s,
@@ -13,7 +11,7 @@ data (Ord s, Eq p) => Kripke p s = Kripke {
   valuation :: p -> [s]
   } 
 
-data (Eq p) => Formula p = Prop p             | Neg  (Formula p)
+data  Formula p = Prop p             | Neg  (Formula p)
              | Disj (Formula p) (Formula p)   | Conj (Formula p) (Formula p)
              | EX   (Formula p)               | EF   (Formula p)
              | EG   (Formula p)               | EU   (Formula p) (Formula p)

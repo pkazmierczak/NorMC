@@ -113,7 +113,6 @@ checker files along with a standard Haskell library for handling
 lists.
 
 \begin{code}
-{-# LANGUAGE DatatypeContexts #-}
 
 module ManualSimpleExample where
 

@@ -1,5 +1,3 @@
-{-# LANGUAGE DatatypeContexts #-}
-
 module FODBR where
 
 import Data.List (foldl',sort,(\\))
@@ -53,7 +51,7 @@ fix f x = if fx == x then x else fix f fx where
 swap :: (a, b) -> (b, a)
 swap (x, y) = (y, x)
 
-data (Ord a, Ord b) => BMT a b = Empty
+data BMT a b = Empty
                                | Branch !(a,[b]) !(BMT a b) !(BMT a b)
                                  deriving (Eq)
 
