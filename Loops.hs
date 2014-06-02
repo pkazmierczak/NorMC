@@ -11,15 +11,15 @@ import Ex02
 revpaths :: (Ord a) => FODBR a a -> [[a]] -> [[a]]
 revpaths rel hists = hists ++ revpaths rel hists'
   where
-    hists' = concat $ map (\hist -> map (:hist) (find1 (fst rel)
+    hists' = concatMap (\hist -> map (:hist) (find1 (fst rel)
                                                  (head hist))) hists
 
 loop :: (Eq a) => [a] -> Bool
 loop (h:t) = h `elem` t
 loop _ = False
 
-eta01NotEnough = map reverse $ 
-                 filter loop (revpaths (transition `minus` 
+eta01NotEnough = map reverse $
+                 filter loop (revpaths (transition `minus`
                                         (eta_0 `union` eta_1)) [[(0,0,0,0,0,0,1)]])
-                 
+
 counterExample = head eta01NotEnough
